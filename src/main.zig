@@ -25,7 +25,6 @@ pub fn main() anyerror!void {
     try binary_file.seekBy(0x78);
     var i: u32 = 0;
     var signature_buffer: [6]u8 = undefined;
-    signature_buffer[5] = 0;
     const bytes_read = try binary_file.read(signature_buffer[0..]);
     const tag_bytes = signature_buffer[0..4];
     if (bytes_read < 2 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
