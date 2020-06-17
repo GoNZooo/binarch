@@ -4,12 +4,13 @@ const mem = std.mem;
 const heap = std.heap;
 const fs = std.fs;
 const debug = std.debug;
+const fmt = std.fmt;
 
 // where the offset to the PE header is
 const pe_offset_position = 0x3c;
 
 const x64_tag = "\x64\x86";
-const x86_tag = "\x01\x4c";
+const x86_tag = "\x4c\x01";
 
 pub fn main() anyerror!void {
     var arg_iterator = process.ArgIterator.init();
@@ -31,14 +32,15 @@ pub fn main() anyerror!void {
     defer binary_file.close();
 
     try binary_file.seekTo(pe_offset_position);
-    var pe_tag_offset_bytes: [1]u8 = undefined;
-    if ((try binary_file.read(pe_tag_offset_bytes[0..])) != 1) {
+    var pe_tag_offset_bytes: [4]u8 = undefined;
+    if ((try binary_file.read(pe_tag_offset_bytes[0..])) != 4) {
         debug.warn("Unable to read PE header start.\n", .{});
 
         process.exit(1);
     }
 
-    try binary_file.seekTo(pe_tag_offset_bytes[0]);
+    const pe_tag_offset = mem.bytesToValue(u32, pe_tag_offset_bytes[0..]);
+    try binary_file.seekTo(pe_tag_offset);
     var signature_buffer: [6]u8 = undefined;
     const bytes_read = try binary_file.read(signature_buffer[0..]);
     const tag_bytes = signature_buffer[0..4];
