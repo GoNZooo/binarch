@@ -31,13 +31,15 @@ pub fn main() anyerror!void {
         debug.warn("Weird binary, exiting.\n", .{});
     } else {
         const architecture_bytes = signature_buffer[4..];
-        debug.warn("Architecture: ", .{});
-        if (mem.eql(u8, architecture_bytes, "\x64\x86")) {
-            debug.warn("x64\n", .{});
-        } else if (mem.eql(u8, architecture_bytes, "\x01\x4c")) {
-            debug.warn("x86\n", .{});
-        } else {
-            debug.warn("Unknown\n", .{});
-        }
+        const architecture_string = arch: {
+            if (mem.eql(u8, architecture_bytes, "\x64\x86")) {
+                break :arch "x64";
+            } else if (mem.eql(u8, architecture_bytes, "\x01\x4c")) {
+                break :arch "x86";
+            } else {
+                break :arch "Unknown";
+            }
+        };
+        debug.warn("Architecture: {}\n", .{architecture_string});
     }
 }
