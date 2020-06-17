@@ -5,6 +5,9 @@ const heap = std.heap;
 const fs = std.fs;
 const debug = std.debug;
 
+// where the offset to the PE header is
+const pe_offset_position = 0x3c;
+
 pub fn main() anyerror!void {
     var arg_iterator = process.ArgIterator.init();
     _ = arg_iterator.next(heap.page_allocator);
@@ -19,14 +22,23 @@ pub fn main() anyerror!void {
     if (mem.eql(u8, binary_path[0..2], ".\\")) {
         binary_path = binary_path[2..];
     }
+
     const cwd = fs.cwd();
     var binary_file = try cwd.openFile(binary_path, fs.File.OpenFlags{});
     defer binary_file.close();
-    try binary_file.seekBy(0x78);
-    var i: u32 = 0;
+
+    try binary_file.seekTo(pe_offset_position);
+    var pe_tag_offset_bytes: [1]u8 = undefined;
+    if ((try binary_file.read(pe_tag_offset_bytes[0..])) != 1) {
+        debug.warn("Unable to read PE header start.\n", .{});
+        process.exit(0);
+    }
+
+    try binary_file.seekTo(pe_tag_offset_bytes[0]);
     var signature_buffer: [6]u8 = undefined;
     const bytes_read = try binary_file.read(signature_buffer[0..]);
     const tag_bytes = signature_buffer[0..4];
+
     if (bytes_read < 2 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
         debug.warn("Weird binary, exiting.\n", .{});
     } else {
