@@ -14,9 +14,14 @@ pub fn main() anyerror!void {
 
         process.exit(1);
     }
-    const binary_path = try maybe_binary_path.?;
+    var binary_path = try maybe_binary_path.?;
+    // cut off annoying prefix
+    if (mem.eql(u8, binary_path[0..2], ".\\")) {
+        binary_path = binary_path[2..];
+    }
     const cwd = fs.cwd();
     var binary_file = try cwd.openFile(binary_path, fs.File.OpenFlags{});
+    defer binary_file.close();
     try binary_file.seekBy(0x78);
     var i: u32 = 0;
     var signature_buffer: [6]u8 = undefined;
