@@ -34,7 +34,8 @@ pub fn main() anyerror!void {
     var pe_tag_offset_bytes: [1]u8 = undefined;
     if ((try binary_file.read(pe_tag_offset_bytes[0..])) != 1) {
         debug.warn("Unable to read PE header start.\n", .{});
-        process.exit(0);
+
+        process.exit(1);
     }
 
     try binary_file.seekTo(pe_tag_offset_bytes[0]);
@@ -44,6 +45,8 @@ pub fn main() anyerror!void {
 
     if (bytes_read < 2 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
         debug.warn("Weird binary, exiting.\n", .{});
+
+        process.exit(1);
     } else {
         const architecture_bytes = signature_buffer[4..];
         const architecture_string = arch: {
