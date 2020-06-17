@@ -8,6 +8,9 @@ const debug = std.debug;
 // where the offset to the PE header is
 const pe_offset_position = 0x3c;
 
+const x64_tag = "\x64\x86";
+const x86_tag = "\x01\x4c";
+
 pub fn main() anyerror!void {
     var arg_iterator = process.ArgIterator.init();
     _ = arg_iterator.next(heap.page_allocator);
@@ -44,9 +47,9 @@ pub fn main() anyerror!void {
     } else {
         const architecture_bytes = signature_buffer[4..];
         const architecture_string = arch: {
-            if (mem.eql(u8, architecture_bytes, "\x64\x86")) {
+            if (mem.eql(u8, architecture_bytes, x64_tag)) {
                 break :arch "x64";
-            } else if (mem.eql(u8, architecture_bytes, "\x01\x4c")) {
+            } else if (mem.eql(u8, architecture_bytes, x86_tag)) {
                 break :arch "x86";
             } else {
                 break :arch "Unknown";
