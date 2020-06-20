@@ -34,9 +34,7 @@ fn getMachineType(file: fs.File) !MachineType {
     const tag_bytes = signature_buffer[0..4];
 
     if (bytes_read < 2 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
-        debug.warn("Weird binary, exiting.\n", .{});
-
-        process.exit(1);
+        return error.NoPESignatureAtHeader;
     } else {
         const architecture_bytes = signature_buffer[4..];
         if (mem.eql(u8, architecture_bytes, x64_tag)) {
@@ -64,7 +62,24 @@ pub fn main() anyerror!void {
         var binary_path = try arg;
         // cut off annoying prefix
         if (mem.eql(u8, binary_path[0..2], ".\\")) binary_path = binary_path[2..];
-        const machine_type = try getMachineTypeForPath(cwd, binary_path);
+
+        const machine_type = getMachineTypeForPath(cwd, binary_path) catch |e| {
+            switch (e) {
+                error.NoPESignatureAtHeader => {
+                    debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
+                },
+                error.FileTooSmall => {
+                    debug.warn(
+                        "'{}' is possibly an incomplete/too small PE file.\n",
+                        .{binary_path},
+                    );
+                },
+                else => {
+                    debug.warn("'{}' had IO error of some sort: {}.\n", .{ binary_path, e });
+                },
+            }
+            continue;
+        };
         const s = switch (machine_type) {
             .x64 => "x64",
             .x86 => "x86",
