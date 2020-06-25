@@ -13,6 +13,7 @@ pub const PEHeader = struct {
     symbol_table_offset: u32,
     symbols: u32,
     optional_header_size: u16,
+    // @TODO: add deconstruction of this flags value
     characteristics: u16,
 };
 
