@@ -6,15 +6,62 @@ const fs = std.fs;
 const debug = std.debug;
 const fmt = std.fmt;
 
+const ArrayList = std.ArrayList;
+
 const pe = @import("./pe.zig");
 
+const Options = struct {
+    machine_type: bool,
+    sections: bool,
+    binaries: ArrayList([]u8),
+
+    pub fn fromArgs(allocator: *mem.Allocator, args: [][]u8) !Options {
+        var machine_type = true;
+        var sections = false;
+        var binaries = ArrayList([]u8).init(allocator);
+
+        for (args) |a| {
+            if (mem.eql(u8, a, "-m")) {
+                machine_type = true;
+            } else if (mem.eql(u8, a, "-s")) {
+                sections = true;
+            } else {
+                try binaries.append(a);
+            }
+        }
+
+        return Options{ .machine_type = machine_type, .sections = sections, .binaries = binaries };
+    }
+};
+
+fn outputPEHeader(path: []const u8, header: pe.PEHeader, options: Options) !void {
+    const machine_type = switch (header.machine_type) {
+        .x64 => "x64",
+        .x86 => "x86",
+        .unknown => "unknown",
+    };
+    var machine_type_buffer: [32]u8 = undefined;
+    const machine_type_output = if (options.machine_type)
+        try fmt.bufPrint(&machine_type_buffer, "\n\tMachine Type: {}", .{machine_type})
+    else
+        "";
+
+    var sections_buffer: [32]u8 = undefined;
+    const sections_output = if (options.sections)
+        try fmt.bufPrint(&sections_buffer, "\n\tSections: {}", .{header.sections})
+    else
+        "";
+
+    debug.warn("{}{}{}\n", .{ path, machine_type_output, sections_output });
+}
+
 pub fn main() anyerror!void {
-    var arg_iterator = process.ArgIterator.init();
-    _ = arg_iterator.skip();
+    const args = try process.argsAlloc(heap.page_allocator);
+    const options = try Options.fromArgs(heap.page_allocator, args[1..]);
 
     const cwd = fs.cwd();
-    while (arg_iterator.next(heap.page_allocator)) |arg| {
-        var binary_path = try arg;
+    for (options.binaries.items) |path| {
+        var binary_path = path;
         // cut off annoying prefix
         if (mem.eql(u8, binary_path[0..2], ".\\")) binary_path = binary_path[2..];
 
@@ -37,11 +84,6 @@ pub fn main() anyerror!void {
             }
             continue;
         };
-        const s = switch (pe_header.machine_type) {
-            .x64 => "x64",
-            .x86 => "x86",
-            .unknown => "unknown",
-        };
-        debug.warn("{}: {}\n", .{ binary_path, s });
+        try outputPEHeader(binary_path, pe_header, options);
     }
 }
