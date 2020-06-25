@@ -18,7 +18,9 @@ pub fn main() anyerror!void {
         // cut off annoying prefix
         if (mem.eql(u8, binary_path[0..2], ".\\")) binary_path = binary_path[2..];
 
-        const machine_type = pe.getMachineTypeForPath(cwd, binary_path) catch |e| {
+        var file = try cwd.openFile(binary_path, fs.File.OpenFlags{});
+        defer file.close();
+        const pe_header = pe.getPEHeader(file) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
                     debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
@@ -35,7 +37,7 @@ pub fn main() anyerror!void {
             }
             continue;
         };
-        const s = switch (machine_type) {
+        const s = switch (pe_header.machine_type) {
             .x64 => "x64",
             .x86 => "x86",
             .unknown => "unknown",
