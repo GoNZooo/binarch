@@ -13,24 +13,33 @@ const pe = @import("./pe.zig");
 const Options = struct {
     machine_type: bool,
     sections: bool,
+    symbols: bool,
     binaries: ArrayList([]u8),
 
     pub fn fromArgs(allocator: *mem.Allocator, args: [][]u8) !Options {
         var machine_type = true;
         var sections = false;
+        var symbols = false;
         var binaries = ArrayList([]u8).init(allocator);
 
         for (args) |a| {
             if (mem.eql(u8, a, "-m")) {
                 machine_type = true;
-            } else if (mem.eql(u8, a, "-s")) {
+            } else if (mem.eql(u8, a, "-se")) {
                 sections = true;
+            } else if (mem.eql(u8, a, "-sy")) {
+                symbols = true;
             } else {
                 try binaries.append(a);
             }
         }
 
-        return Options{ .machine_type = machine_type, .sections = sections, .binaries = binaries };
+        return Options{
+            .machine_type = machine_type,
+            .sections = sections,
+            .binaries = binaries,
+            .symbols = symbols,
+        };
     }
 };
 
@@ -42,17 +51,23 @@ fn outputPEHeader(path: []const u8, header: pe.PEHeader, options: Options) !void
     };
     var machine_type_buffer: [32]u8 = undefined;
     const machine_type_output = if (options.machine_type)
-        try fmt.bufPrint(&machine_type_buffer, "\n\tMachine Type: {}", .{machine_type})
+        try fmt.bufPrint(&machine_type_buffer, "\tMachine Type: {}\n", .{machine_type})
     else
         "";
 
     var sections_buffer: [32]u8 = undefined;
     const sections_output = if (options.sections)
-        try fmt.bufPrint(&sections_buffer, "\n\tSections: {}", .{header.sections})
+        try fmt.bufPrint(&sections_buffer, "\tSections: {}\n", .{header.sections})
     else
         "";
 
-    debug.warn("{}{}{}\n", .{ path, machine_type_output, sections_output });
+    var symbols_buffer: [32]u8 = undefined;
+    const symbols_output = if (options.symbols)
+        try fmt.bufPrint(&symbols_buffer, "\tSymbols: {}\n", .{header.symbols})
+    else
+        "";
+
+    debug.warn("{}\n{}{}{}", .{ path, machine_type_output, sections_output, symbols_output });
 }
 
 pub fn main() anyerror!void {
