@@ -8,6 +8,7 @@ const fs = std.fs;
 
 pub const PEHeader = struct {
     machine_type: MachineType,
+    // can have maximum 96 sections in a PE file
     sections: u16,
     created: u32,
     symbol_table_offset: u32,
