@@ -6,9 +6,9 @@ const fs = std.fs;
 const debug = std.debug;
 const fmt = std.fmt;
 
-const ArrayList = std.ArrayList;
+const coff = @import("./coff.zig");
 
-const pe = @import("./pe.zig");
+const ArrayList = std.ArrayList;
 
 const Options = struct {
     machine_type: bool,
@@ -43,7 +43,7 @@ const Options = struct {
     }
 };
 
-fn outputPEHeader(path: []const u8, header: pe.PEHeader, options: Options) !void {
+fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options) !void {
     const machine_type = switch (header.machine_type) {
         .x64 => "x64",
         .x86 => "x86",
@@ -82,7 +82,7 @@ pub fn main() anyerror!void {
 
         var file = try cwd.openFile(binary_path, fs.File.OpenFlags{});
         defer file.close();
-        const pe_header = pe.getPEHeader(file) catch |e| {
+        const pe_header = coff.getCOFFHeader(file) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
                     debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
@@ -99,6 +99,6 @@ pub fn main() anyerror!void {
             }
             continue;
         };
-        try outputPEHeader(binary_path, pe_header, options);
+        try outputCOFFHeader(binary_path, pe_header, options);
     }
 }
