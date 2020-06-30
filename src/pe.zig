@@ -89,30 +89,3 @@ pub const MachineType = enum {
     x64,
     unknown,
 };
-
-pub fn getMachineType(file: fs.File) !MachineType {
-    const pe_tag_offset = try getPEHeaderLocation(file);
-    try file.seekTo(pe_tag_offset);
-    var signature_buffer: [6]u8 = undefined;
-    const bytes_read = try file.read(signature_buffer[0..]);
-    const tag_bytes = signature_buffer[0..4];
-
-    if (bytes_read < 2 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
-        return error.NoPESignatureAtHeader;
-    } else {
-        const architecture_bytes = signature_buffer[4..];
-        if (mem.eql(u8, architecture_bytes, x64_tag)) {
-            return MachineType.x64;
-        } else if (mem.eql(u8, architecture_bytes, x86_tag)) {
-            return MachineType.x86;
-        } else {
-            return MachineType.unknown;
-        }
-    }
-}
-
-pub fn getMachineTypeForPath(directory: fs.Dir, path: []const u8) !MachineType {
-    var file = try directory.openFile(path, fs.File.OpenFlags{});
-    defer file.close();
-    return try getMachineType(file);
-}
