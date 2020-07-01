@@ -26,6 +26,24 @@ pub const COFFHeader = struct {
     characteristics: Characteristics,
 };
 
+pub const Characteristics = struct {
+    relocations_stripped: bool,
+    executable_image: bool,
+    line_numbers_stripped: bool,
+    local_symbols_stripped: bool,
+    working_set_trim: bool,
+    large_address_aware: bool,
+    little_endian: bool,
+    machine_32bit: bool,
+    debugging_info_stripped: bool,
+    removable_run_from_swap: bool,
+    net_run_from_swap: bool,
+    file_system: bool,
+    dll: bool,
+    uniprocessor_only: bool,
+    big_endian: bool,
+};
+
 const x64_tag = "\x64\x86";
 const x86_tag = "\x4c\x01";
 
@@ -133,21 +151,3 @@ const file_system_position = 0x1000;
 const dll_position = 0x2000;
 const uniprocessor_only_position = 0x4000;
 const big_endian_position = 0x8000;
-
-pub const Characteristics = struct {
-    relocations_stripped: bool,
-    executable_image: bool,
-    line_numbers_stripped: bool,
-    local_symbols_stripped: bool,
-    working_set_trim: bool,
-    large_address_aware: bool,
-    little_endian: bool,
-    machine_32bit: bool,
-    debugging_info_stripped: bool,
-    removable_run_from_swap: bool,
-    net_run_from_swap: bool,
-    file_system: bool,
-    dll: bool,
-    uniprocessor_only: bool,
-    big_endian: bool,
-};
