@@ -22,7 +22,6 @@ pub const COFFHeader = struct {
     symbol_table_offset: u32,
     symbols: u32,
     optional_header_size: u16,
-    // @TODO: add deconstruction of this flags value
     characteristics: Characteristics,
 };
 
@@ -43,9 +42,6 @@ pub const Characteristics = struct {
     uniprocessor_only: bool,
     big_endian: bool,
 };
-
-const x64_tag = "\x64\x86";
-const x86_tag = "\x4c\x01";
 
 pub fn getCOFFHeader(file: fs.File) !COFFHeader {
     const pe_tag_offset = try pe.getPESignatureLocation(file);
@@ -135,6 +131,9 @@ pub fn readCOFFHeader(file: fs.File, pe_buffer: []u8) !COFFHeader {
         .characteristics = characteristics,
     };
 }
+
+const x64_tag = "\x64\x86";
+const x86_tag = "\x4c\x01";
 
 const relocations_stripped_position = 0x0001;
 const executable_image_position = 0x0002;
