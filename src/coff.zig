@@ -63,16 +63,21 @@ pub const Characteristics = struct {
             \\{}DLL:                  {}
             \\{}Large Address Aware:  {}
         ;
+
+        const executableYesNo = try boolToYesNo(self.executable_image);
+        const dllYesNo = try boolToYesNo(self.dll);
+        const largeAddressAwareYesNo = try boolToYesNo(self.large_address_aware);
+
         return try fmt.bufPrint(
             buffer,
             format,
             .{
                 line_prefix,
-                self.executable_image,
+                executableYesNo,
                 line_prefix,
-                self.dll,
+                dllYesNo,
                 line_prefix,
-                self.large_address_aware,
+                largeAddressAwareYesNo,
             },
         );
     }
@@ -165,6 +170,12 @@ pub fn readCOFFHeader(file: fs.File, pe_buffer: []u8) !COFFHeader {
         .optional_header_size = optional_header_size,
         .characteristics = characteristics,
     };
+}
+
+fn boolToYesNo(b: bool) ![:0]const u8 {
+    const buffer = if (b) "Yes" else "No";
+
+    return buffer;
 }
 
 const x64_tag = "\x64\x86";
