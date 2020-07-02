@@ -26,6 +26,8 @@ pub const COFFHeader = struct {
 };
 
 pub const Characteristics = struct {
+    const Self = @This();
+
     relocations_stripped: bool,
     executable_image: bool,
     line_numbers_stripped: bool,
@@ -41,6 +43,19 @@ pub const Characteristics = struct {
     dll: bool,
     uniprocessor_only: bool,
     big_endian: bool,
+
+    pub fn allocPrint(self: Self, allocator: *mem.Allocator) []u8 {
+        const format =
+            \\Executable:           {}
+            \\DLL:                  {}
+            \\Large Address Aware:  {}
+        ;
+        try fmt.allocPrint(
+            allocator,
+            format,
+            .{ self.executable_image, self.dll, self.large_address_aware },
+        );
+    }
 };
 
 pub fn getCOFFHeader(file: fs.File) !COFFHeader {
