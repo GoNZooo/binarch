@@ -14,12 +14,14 @@ const Options = struct {
     machine_type: bool,
     sections: bool,
     symbols: bool,
+    characteristics: bool,
     binaries: ArrayList([]u8),
 
     pub fn fromArgs(allocator: *mem.Allocator, args: [][]u8) !Options {
         var machine_type = true;
         var sections = false;
         var symbols = false;
+        var characteristics = false;
         var binaries = ArrayList([]u8).init(allocator);
 
         for (args) |a| {
@@ -29,6 +31,8 @@ const Options = struct {
                 sections = true;
             } else if (mem.eql(u8, a, "-sy")) {
                 symbols = true;
+            } else if (mem.eql(u8, a, "-c")) {
+                characteristics = true;
             } else {
                 try binaries.append(a);
             }
@@ -39,6 +43,7 @@ const Options = struct {
             .sections = sections,
             .binaries = binaries,
             .symbols = symbols,
+            .characteristics = characteristics,
         };
     }
 };
@@ -67,7 +72,16 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
     else
         "";
 
-    debug.warn("{}\n{}{}{}", .{ path, machine_type_output, sections_output, symbols_output });
+    var characteristics_buffer: [128]u8 = undefined;
+    const characteristics_output = if (options.characteristics)
+        try header.characteristics.bufPrint(characteristics_buffer[0..])
+    else
+        "";
+
+    debug.warn(
+        "{}\n{}{}{}{}",
+        .{ path, machine_type_output, sections_output, symbols_output, characteristics_output },
+    );
 }
 
 pub fn main() anyerror!void {

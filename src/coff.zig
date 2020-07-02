@@ -44,7 +44,7 @@ pub const Characteristics = struct {
     uniprocessor_only: bool,
     big_endian: bool,
 
-    pub fn allocPrint(self: Self, allocator: *mem.Allocator) []u8 {
+    pub fn allocPrint(self: Self, allocator: *mem.Allocator) ![]u8 {
         const format =
             \\Executable:           {}
             \\DLL:                  {}
@@ -52,6 +52,19 @@ pub const Characteristics = struct {
         ;
         try fmt.allocPrint(
             allocator,
+            format,
+            .{ self.executable_image, self.dll, self.large_address_aware },
+        );
+    }
+
+    pub fn bufPrint(self: Self, buffer: []u8) ![]u8 {
+        const format =
+            \\Executable:           {}
+            \\DLL:                  {}
+            \\Large Address Aware:  {}
+        ;
+        return try fmt.bufPrint(
+            buffer,
             format,
             .{ self.executable_image, self.dll, self.large_address_aware },
         );
