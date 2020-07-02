@@ -74,7 +74,7 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
 
     var characteristics_buffer: [128]u8 = undefined;
     const characteristics_output = if (options.characteristics)
-        try header.characteristics.bufPrint(characteristics_buffer[0..])
+        try header.characteristics.bufPrint(characteristics_buffer[0..], "\t")
     else
         "";
 

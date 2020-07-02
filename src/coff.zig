@@ -57,16 +57,23 @@ pub const Characteristics = struct {
         );
     }
 
-    pub fn bufPrint(self: Self, buffer: []u8) ![]u8 {
+    pub fn bufPrint(self: Self, buffer: []u8, line_prefix: []const u8) ![]u8 {
         const format =
-            \\Executable:           {}
-            \\DLL:                  {}
-            \\Large Address Aware:  {}
+            \\{}Executable:           {}
+            \\{}DLL:                  {}
+            \\{}Large Address Aware:  {}
         ;
         return try fmt.bufPrint(
             buffer,
             format,
-            .{ self.executable_image, self.dll, self.large_address_aware },
+            .{
+                line_prefix,
+                self.executable_image,
+                line_prefix,
+                self.dll,
+                line_prefix,
+                self.large_address_aware,
+            },
         );
     }
 };
