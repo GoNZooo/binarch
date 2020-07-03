@@ -49,6 +49,7 @@ pub const Characteristics = struct {
             \\Executable:           {}
             \\DLL:                  {}
             \\Large Address Aware:  {}
+            \\
         ;
         try fmt.allocPrint(
             allocator,
@@ -62,6 +63,7 @@ pub const Characteristics = struct {
             \\{}Executable:           {}
             \\{}DLL:                  {}
             \\{}Large Address Aware:  {}
+            \\
         ;
 
         const executableYesNo = try boolToYesNo(self.executable_image);
