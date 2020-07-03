@@ -6,8 +6,6 @@ const testing = std.testing;
 const heap = std.heap;
 const fs = std.fs;
 
-const pe = @import("./pe.zig");
-
 pub const MachineType = enum {
     x86,
     x64,
@@ -98,9 +96,9 @@ pub const Characteristics = struct {
 };
 
 pub fn getCOFFHeader(buffer: []const u8) !COFFHeader {
-    if (buffer.len < (pe.pe_signature_offset_position + 4)) return error.BufferTooSmall;
+    if (buffer.len < (pe_signature_offset_position + 4)) return error.BufferTooSmall;
 
-    const pe_tag_offset = try pe.getPESignatureLocation(buffer[0..]);
+    const pe_tag_offset = try getPESignatureLocation(buffer[0..]);
 
     if (buffer.len < (pe_tag_offset + 25)) return error.BufferTooSmallForOffsetPlusCOFFHeader;
 
@@ -188,11 +186,23 @@ pub fn readCOFFHeader(buffer: *const [24]u8) !COFFHeader {
     };
 }
 
+pub fn getPESignatureLocation(buffer: []const u8) !u32 {
+    if (buffer.len < (pe_signature_offset_position + 4)) return error.BufferTooSmall;
+
+    return mem.bytesToValue(
+        u32,
+        buffer[pe_signature_offset_position..(pe_signature_offset_position + 4)],
+    );
+}
+
 fn boolToYesNo(b: bool) ![:0]const u8 {
     const buffer = if (b) "Yes" else "No";
 
     return buffer;
 }
+
+// where the offset to the PE header is
+const pe_signature_offset_position = 0x3c;
 
 const x64_tag = "\x64\x86";
 const x86_tag = "\x4c\x01";
