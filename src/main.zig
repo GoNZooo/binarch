@@ -95,17 +95,14 @@ pub fn main() anyerror!void {
         if (mem.eql(u8, binary_path[0..2], ".\\")) binary_path = binary_path[2..];
 
         var file = try cwd.openFile(binary_path, fs.File.OpenFlags{});
+        var buffer: [1024]u8 = undefined;
+        const read_bytes = try file.read(buffer[0..]);
         defer file.close();
-        const pe_header = coff.getCOFFHeader(file) catch |e| {
+        const coff_header = coff.getCOFFHeader(buffer[0..]) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
+                    debug.warn("buffer={}\n", .{buffer});
                     debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
-                },
-                error.FileTooSmall => {
-                    debug.warn(
-                        "'{}' is possibly an incomplete/too small PE file.\n",
-                        .{binary_path},
-                    );
                 },
                 else => {
                     debug.warn("'{}' had IO error of some sort: {}.\n", .{ binary_path, e });
@@ -113,6 +110,6 @@ pub fn main() anyerror!void {
             }
             continue;
         };
-        try outputCOFFHeader(binary_path, pe_header, options);
+        try outputCOFFHeader(binary_path, coff_header, options);
     }
 }

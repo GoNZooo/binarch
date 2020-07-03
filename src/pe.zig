@@ -9,12 +9,13 @@ const fs = std.fs;
 const coff = @import("./coff.zig");
 
 // where the offset to the PE header is
-const pe_signature_offset_position = 0x3c;
+pub const pe_signature_offset_position = 0x3c;
 
-pub fn getPESignatureLocation(file: fs.File) !u32 {
-    try file.seekTo(pe_signature_offset_position);
-    var offset_buffer: [4]u8 = undefined;
-    if ((try file.read(offset_buffer[0..])) != 4) return error.FileTooSmall;
+pub fn getPESignatureLocation(buffer: []const u8) !u32 {
+    if (buffer.len < (pe_signature_offset_position + 4)) return error.BufferTooSmall;
 
-    return mem.bytesToValue(u32, offset_buffer[0..]);
+    return mem.bytesToValue(
+        u32,
+        buffer[pe_signature_offset_position..(pe_signature_offset_position + 4)],
+    );
 }

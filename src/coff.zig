@@ -83,23 +83,25 @@ pub const Characteristics = struct {
     }
 };
 
-pub fn getCOFFHeader(file: fs.File) !COFFHeader {
-    const pe_tag_offset = try pe.getPESignatureLocation(file);
-    try file.seekTo(pe_tag_offset);
+pub fn getCOFFHeader(buffer: []const u8) !COFFHeader {
+    if (buffer.len < (pe.pe_signature_offset_position + 4)) return error.BufferTooSmall;
 
-    var pe_buffer: [24]u8 = undefined;
-    const bytes_read = try file.read(pe_buffer[0..]);
-    const tag_bytes = pe_buffer[0..4];
+    const pe_tag_offset = try pe.getPESignatureLocation(buffer[0..]);
 
-    if (bytes_read < 4 or !mem.eql(u8, tag_bytes, "PE\x00\x00")) {
+    if (buffer.len < (pe_tag_offset + 25)) return error.BufferTooSmallForOffsetPlusCOFFHeader;
+
+    const tag_bytes = buffer[pe_tag_offset..(pe_tag_offset + 4)];
+    const pe_buffer = buffer[pe_tag_offset..];
+
+    if (!mem.eql(u8, tag_bytes, "PE\x00\x00")) {
         return error.NoPESignatureAtHeader;
     } else {
-        return try readCOFFHeader(file, pe_buffer[0..]);
+        return try readCOFFHeader(pe_buffer[0..24]);
     }
 }
 
-pub fn readCOFFHeader(file: fs.File, pe_buffer: []u8) !COFFHeader {
-    const architecture_bytes = pe_buffer[4..6];
+pub fn readCOFFHeader(buffer: *const [24]u8) !COFFHeader {
+    const architecture_bytes = buffer[4..6];
     var machine_type: MachineType = undefined;
     if (mem.eql(u8, architecture_bytes, x64_tag)) {
         machine_type = MachineType.x64;
@@ -109,22 +111,22 @@ pub fn readCOFFHeader(file: fs.File, pe_buffer: []u8) !COFFHeader {
         machine_type = MachineType.unknown;
     }
 
-    const sections_bytes = pe_buffer[6..8];
+    const sections_bytes = buffer[6..8];
     const sections = mem.bytesToValue(u16, sections_bytes);
 
-    const created_bytes = pe_buffer[8..12];
+    const created_bytes = buffer[8..12];
     const created = mem.bytesToValue(u32, created_bytes);
 
-    const symbol_table_offset_bytes = pe_buffer[12..16];
+    const symbol_table_offset_bytes = buffer[12..16];
     const symbol_table_offset = mem.bytesToValue(u32, symbol_table_offset_bytes);
 
-    const symbols_bytes = pe_buffer[16..20];
+    const symbols_bytes = buffer[16..20];
     const symbols = mem.bytesToValue(u32, symbols_bytes);
 
-    const optional_header_size_bytes = pe_buffer[20..22];
+    const optional_header_size_bytes = buffer[20..22];
     const optional_header_size = mem.bytesToValue(u16, optional_header_size_bytes);
 
-    const characteristics_bytes = pe_buffer[22..24];
+    const characteristics_bytes = buffer[22..24];
     const cv = mem.bytesToValue(u16, characteristics_bytes);
 
     const relocations_stripped = ((cv & relocations_stripped_position) >> 0) == 1;
