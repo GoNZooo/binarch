@@ -44,17 +44,29 @@ pub const Characteristics = struct {
     uniprocessor_only: bool,
     big_endian: bool,
 
-    pub fn allocPrint(self: Self, allocator: *mem.Allocator) ![]u8 {
+    pub fn allocPrint(self: Self, allocator: *mem.Allocator, line_prefix: []const u8) ![]u8 {
         const format =
-            \\Executable:           {}
-            \\DLL:                  {}
-            \\Large Address Aware:  {}
+            \\{}Executable:           {}
+            \\{}DLL:                  {}
+            \\{}Large Address Aware:  {}
             \\
         ;
+
+        const executableYesNo = try boolToYesNo(self.executable_image);
+        const dllYesNo = try boolToYesNo(self.dll);
+        const largeAddressAwareYesNo = try boolToYesNo(self.large_address_aware);
+
         try fmt.allocPrint(
             allocator,
             format,
-            .{ self.executable_image, self.dll, self.large_address_aware },
+            .{
+                line_prefix,
+                executableYesNo,
+                line_prefix,
+                dllYesNo,
+                line_prefix,
+                largeAddressAwareYesNo,
+            },
         );
     }
 
