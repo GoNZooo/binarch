@@ -101,7 +101,6 @@ pub fn main() anyerror!void {
         const coff_header = coff.getCOFFHeader(buffer[0..]) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
-                    debug.warn("buffer={}\n", .{buffer});
                     debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
                 },
                 else => {
