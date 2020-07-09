@@ -1,7 +1,7 @@
 # Why?
 
-I wanted/needed a tool to tell me what bitness an executable has. I extended it
-a bit but mostly use it for this purpose anyway.
+I wanted/needed a tool to tell me what bitness an executable was compiled with.
+I extended it a bit but mostly use it for this purpose anyway.
 
 # Usage
 
