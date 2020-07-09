@@ -16,10 +16,12 @@ Pass:
 ## Example
 
 ```
-❯ binarch.exe .\zig-cache\bin\binarch.exe -c
-zig-cache\bin\binarch.exe
-        Machine Type: x64
+❯ binarch.exe .\zig-cache\bin\binarch.exe -c -sy -se
+zig-cache\bin\binarch.exe        
+        Machine Type: x64        
+        Sections: 7
+        Symbols: 0
         Executable:           Yes
-        DLL:                  No
+        DLL:                  No 
         Large Address Aware:  Yes
 ```
