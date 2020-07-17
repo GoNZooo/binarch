@@ -85,8 +85,8 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
 }
 
 pub fn main() anyerror!void {
-    const args = try process.argsAlloc(heap.page_allocator);
-    const options = try Options.fromArgs(heap.page_allocator, args[1..]);
+    const arguments = try process.argsAlloc(heap.page_allocator);
+    const options = try Options.fromArgs(heap.page_allocator, arguments[1..]);
 
     const cwd = fs.cwd();
     for (options.binaries.items) |path| {
