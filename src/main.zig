@@ -101,10 +101,10 @@ pub fn main() anyerror!void {
         const coff_header = coff.getCOFFHeader(buffer[0..]) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
-                    debug.warn("'{}' does not seem to be a PE file.\n", .{binary_path});
+                    debug.print("'{}' does not seem to be a PE file.\n", .{binary_path});
                 },
                 else => {
-                    debug.warn("'{}' had IO error of some sort: {}.\n", .{ binary_path, e });
+                    debug.print("'{}' had IO error of some sort: {}.\n", .{ binary_path, e });
                 },
             }
             continue;
