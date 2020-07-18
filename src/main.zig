@@ -17,14 +17,14 @@ const Options = struct {
     characteristics: bool,
     binaries: ArrayList([]u8),
 
-    pub fn fromArgs(allocator: *mem.Allocator, args: [][]u8) !Options {
+    pub fn fromArguments(allocator: *mem.Allocator, arguments: [][]u8) !Options {
         var machine_type = true;
         var sections = false;
         var symbols = false;
         var characteristics = false;
         var binaries = ArrayList([]u8).init(allocator);
 
-        for (args) |a| {
+        for (arguments) |a| {
             if (mem.eql(u8, a, "-m")) {
                 machine_type = true;
             } else if (mem.eql(u8, a, "-se")) {
@@ -86,7 +86,7 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
 
 pub fn main() anyerror!void {
     const arguments = try process.argsAlloc(heap.page_allocator);
-    const options = try Options.fromArgs(heap.page_allocator, arguments[1..]);
+    const options = try Options.fromArguments(heap.page_allocator, arguments[1..]);
 
     const cwd = fs.cwd();
     for (options.binaries.items) |path| {
