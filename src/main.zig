@@ -3,7 +3,6 @@ const process = std.process;
 const mem = std.mem;
 const heap = std.heap;
 const fs = std.fs;
-const debug = std.debug;
 const fmt = std.fmt;
 
 const coff = @import("./coff.zig");
@@ -48,7 +47,8 @@ const Options = struct {
     }
 };
 
-fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options) !void {
+fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, output_file: fs.File, options: Options) !void {
+    const writer = output_file.writer();
     const machine_type = switch (header.machine_type) {
         .x64 => "x64",
         .x86 => "x86",
@@ -78,7 +78,7 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
     else
         "";
 
-    debug.warn(
+    try writer.print(
         "{}\n{}{}{}{}",
         .{ path, machine_type_output, sections_output, symbols_output, characteristics_output },
     );
@@ -87,6 +87,8 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, options: Options)
 pub fn main() anyerror!void {
     const arguments = try process.argsAlloc(heap.page_allocator);
     const options = try Options.fromArguments(heap.page_allocator, arguments[1..]);
+    const standard_out = std.io.getStdOut();
+    const out_writer = standard_out.writer();
 
     const cwd = fs.cwd();
     for (options.binaries.items) |path| {
@@ -101,14 +103,17 @@ pub fn main() anyerror!void {
         const coff_header = coff.getCOFFHeader(buffer[0..]) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
-                    debug.print("'{}' does not seem to be a PE file.\n", .{binary_path});
+                    try out_writer.print("'{}' does not seem to be a PE file.\n", .{binary_path});
                 },
                 else => {
-                    debug.print("'{}' had IO error of some sort: {}.\n", .{ binary_path, e });
+                    try out_writer.print(
+                        "'{}' had IO error of some sort: {}.\n",
+                        .{ binary_path, e },
+                    );
                 },
             }
             continue;
         };
-        try outputCOFFHeader(binary_path, coff_header, options);
+        try outputCOFFHeader(binary_path, coff_header, standard_out, options);
     }
 }
