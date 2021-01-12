@@ -56,7 +56,7 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, output_file: fs.F
     };
     var machine_type_buffer: [32]u8 = undefined;
     const machine_type_output = if (options.machine_type)
-        try fmt.bufPrint(&machine_type_buffer, "\tMachine Type: {}\n", .{machine_type})
+        try fmt.bufPrint(&machine_type_buffer, "\tMachine Type: {s}\n", .{machine_type})
     else
         "";
 
@@ -79,7 +79,7 @@ fn outputCOFFHeader(path: []const u8, header: coff.COFFHeader, output_file: fs.F
         "";
 
     try writer.print(
-        "{}\n{}{}{}{}",
+        "{s}\n{s}{s}{s}{s}",
         .{ path, machine_type_output, sections_output, symbols_output, characteristics_output },
     );
 }
@@ -103,11 +103,11 @@ pub fn main() anyerror!void {
         const coff_header = coff.getCOFFHeader(buffer[0..]) catch |e| {
             switch (e) {
                 error.NoPESignatureAtHeader => {
-                    try out_writer.print("'{}' does not seem to be a PE file.\n", .{binary_path});
+                    try out_writer.print("'{s}' does not seem to be a PE file.\n", .{binary_path});
                 },
                 else => {
                     try out_writer.print(
-                        "'{}' had IO error of some sort: {}.\n",
+                        "'{s}' had IO error of some sort: {}.\n",
                         .{ binary_path, e },
                     );
                 },

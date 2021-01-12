@@ -44,9 +44,9 @@ pub const Characteristics = struct {
 
     pub fn allocPrint(self: Self, allocator: *mem.Allocator, line_prefix: []const u8) ![]u8 {
         const format =
-            \\{}Executable:           {}
-            \\{}DLL:                  {}
-            \\{}Large Address Aware:  {}
+            \\{s}Executable:           {s}
+            \\{s}DLL:                  {s}
+            \\{s}Large Address Aware:  {s}
             \\
         ;
 
@@ -70,9 +70,9 @@ pub const Characteristics = struct {
 
     pub fn bufPrint(self: Self, buffer: []u8, line_prefix: []const u8) ![]u8 {
         const format =
-            \\{}Executable:           {}
-            \\{}DLL:                  {}
-            \\{}Large Address Aware:  {}
+            \\{s}Executable:           {s}
+            \\{s}DLL:                  {s}
+            \\{s}Large Address Aware:  {s}
             \\
         ;
 
